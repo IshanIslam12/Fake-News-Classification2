@@ -1,5 +1,3 @@
-# backend/model_api.py
-
 import os
 import re
 from typing import Optional
@@ -13,18 +11,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModel
 
+
 # ==============================
 # 1. Custom model definition
-#    (must match your Colab class)
+#    (must match your Colab model)
 # ==============================
 class BertForFakeNews(nn.Module):
     """
     Custom BERT-based classifier.
 
-    This assumes in Colab you did something like:
+    Assumes in Colab you did something like:
+
         self.bert = AutoModel.from_pretrained(model_name)
-        then a small feedforward head on top of CLS token.
+        cls_repr = outputs.last_hidden_state[:, 0, :]
+        then a feed-forward head on top of CLS.
     """
+
     def __init__(
         self,
         model_name: str,
@@ -34,9 +36,11 @@ class BertForFakeNews(nn.Module):
     ):
         super().__init__()
 
+        # Base BERT encoder
         self.bert = AutoModel.from_pretrained(model_name)
         hidden_size = self.bert.config.hidden_size
 
+        # Classification head
         self.dropout = nn.Dropout(head_dropout)
         self.fc1 = nn.Linear(hidden_size, head_hidden)
         self.act = nn.ReLU()
@@ -48,8 +52,9 @@ class BertForFakeNews(nn.Module):
             attention_mask=attention_mask,
             **kwargs,
         )
-        # CLS token representation
-        cls_repr = outputs.last_hidden_state[:, 0, :]  # [batch, hidden]
+        # CLS token representation: [batch, hidden]
+        cls_repr = outputs.last_hidden_state[:, 0, :]
+
         x = self.dropout(cls_repr)
         x = self.fc1(x)
         x = self.act(x)
@@ -62,7 +67,7 @@ class BertForFakeNews(nn.Module):
 # 2. Paths & device
 # ==============================
 BASE_DIR = os.path.dirname(__file__)
-MODEL_DIR = os.path.join(BASE_DIR, "fake_news_model")  # contains model.pt + tokenizer files
+MODEL_DIR = os.path.join(BASE_DIR, "fake_news_model")  # folder with model.pt + tokenizer files
 CKPT_PATH = os.path.join(MODEL_DIR, "model.pt")
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -81,7 +86,7 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
 print(f"Loading checkpoint from {CKPT_PATH} on {DEVICE}...")
 ckpt = torch.load(CKPT_PATH, map_location=DEVICE)
 
-# These keys come from your Colab save:
+# Keys saved from Colab:
 #   "state_dict", "model_name", "num_labels", "head_hidden", "head_dropout"
 model_name = ckpt.get("model_name")
 num_labels = ckpt.get("num_labels", 2)
@@ -114,7 +119,7 @@ app = FastAPI(title="Fake News Classifier API (Custom BERT)")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # you can restrict this to your domain later
+    allow_origins=["*"],   # restrict to your frontend domain later if you want
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -130,11 +135,12 @@ class InputData(BaseModel):
 
 
 # ==============================
-# 7. Text cleaner (simple)
+# 7. Simple text cleaner
 # ==============================
 LINKS_RE = re.compile(r"http\S+|www\S+", re.IGNORECASE)
-HTML_RE  = re.compile(r"<.*?>", re.IGNORECASE)
+HTML_RE = re.compile(r"<.*?>", re.IGNORECASE)
 SPACE_RE = re.compile(r"\s+")
+
 
 def clean_text(s: str) -> str:
     s = s or ""
@@ -158,8 +164,8 @@ def predict_fake_news(text: str):
 
     Returns:
         label: "REAL" or "FAKE"
-        prob_real: float
-        prob_fake: float
+        prob_real: float in [0,1]
+        prob_fake: float in [0,1]
         confidence: max(prob_real, prob_fake)
     """
     cleaned = clean_text(text)
@@ -211,21 +217,40 @@ def health():
 
 @app.post("/predict")
 def predict(data: InputData):
+    """
+    Main prediction endpoint.
+
+    Returns both raw probabilities and a clean string like:
+        "82% REAL" or "70% FAKE"
+    """
     merged = f"{data.title or ''} {data.text or ''}".strip()
     if not merged:
         return {"ok": False, "error": "Please provide a title or text."}
 
     label, prob_real, prob_fake, confidence = predict_fake_news(merged)
 
+    # Convert to integer percentages
+    pct_real = round(prob_real * 100)
+    pct_fake = round(prob_fake * 100)
+
+    # Human-readable result string
+    if label == "REAL":
+        result_text = f"{pct_real}% REAL"
+    else:
+        result_text = f"{pct_fake}% FAKE"
+
     return {
         "ok": True,
-        "label": label,                 # "REAL" or "FAKE"
+        "label": label,                         # "REAL" or "FAKE"
         "label_id": 0 if label == "REAL" else 1,
-        "confidence": float(confidence),
-        "score_real": float(prob_real),
-        "score_fake": float(prob_fake),
+        "confidence": float(confidence),        # max(prob_real, prob_fake)
+        "score_real": float(prob_real),         # raw prob
+        "score_fake": float(prob_fake),         # raw prob
+        "percentage_real": pct_real,            # 0–100
+        "percentage_fake": pct_fake,            # 0–100
+        "result_text": result_text,             # "82% REAL" / "70% FAKE"
     }
 
-# Run locally:
+# Local test:
 #   cd backend
 #   uvicorn model_api:app --reload --port 8000
