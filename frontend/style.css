@@ -1,75 +1,170 @@
+/* Global reset-ish */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
-  background: #0b1220;
-  color: #eaf2ff;
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0f172a;
+    color: #e5e7eb;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
 }
 
-.container {
-  max-width: 700px;
-  margin: 60px auto;
-  padding: 20px;
-  background: #11192a;
-  border-radius: 12px;
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.35);
+/* App layout */
+.app {
+    width: 100%;
+    max-width: 800px;
+    margin: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
-h1 {
-  text-align: center;
-  font-size: 32px;
-  margin-bottom: 10px;
+.app-header {
+    text-align: center;
+    padding: 12px;
 }
 
-.subtitle {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #9fb3d9;
+.app-header h1 {
+    font-size: 1.9rem;
+    margin-bottom: 8px;
+    color: #f9fafb;
 }
 
-label {
-  font-weight: bold;
-  margin-top: 15px;
-  display: block;
+.app-header p {
+    font-size: 0.95rem;
+    color: #9ca3af;
 }
 
-input,
-textarea {
-  width: 100%;
-  padding: 12px;
-  margin-top: 5px;
-  border: none;
-  border-radius: 8px;
-  background: #0b1426;
-  color: white;
+.app-main {
+    flex: 1;
 }
 
-textarea {
-  height: 150px;
+.card {
+    background: #020617;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-button {
-  margin-top: 20px;
-  width: 100%;
-  padding: 14px;
-  background: #5ac8fa;
-  border: none;
-  border-radius: 10px;
-  color: #021427;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 16px;
+/* Inputs */
+.field-label {
+    font-size: 0.9rem;
+    color: #e5e7eb;
+    margin-bottom: 4px;
 }
 
-button:hover {
-  opacity: 0.9;
+.text-input,
+.text-area {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #1f2933;
+    background: #020617;
+    color: #e5e7eb;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border 0.15s ease, box-shadow 0.15s ease;
 }
 
-.result {
-  margin-top: 20px;
-  padding: 18px;
-  border-radius: 10px;
-  font-size: 18px;
-  background: #0b1426;
-  border-left: 4px solid #5ac8fa;
+.text-input::placeholder,
+.text-area::placeholder {
+    color: #6b7280;
+}
+
+.text-input:focus,
+.text-area:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+}
+
+/* Button */
+.btn-primary {
+    margin-top: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: none;
+    background: #3b82f6;
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Result box */
+.result-box {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #020617;
+    border: 1px solid #1f2937;
+    font-size: 0.95rem;
+}
+
+/* Color states */
+.result-box.real {
+    border-color: #22c55e;
+    background: rgba(22, 163, 74, 0.08);
+    color: #bbf7d0;
+}
+
+.result-box.fake {
+    border-color: #f97373;
+    background: rgba(220, 38, 38, 0.08);
+    color: #fecaca;
+}
+
+.result-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.result-detail {
+    font-size: 0.9rem;
+    color: #d1d5db;
+}
+
+/* Footer */
+.app-footer {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .card {
+        padding: 16px;
+    }
+
+    .app-header h1 {
+        font-size: 1.6rem;
+    }
 }

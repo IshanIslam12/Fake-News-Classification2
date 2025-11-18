@@ -1,49 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fake News Classifier</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <title>Fake News Detector</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  <div class="container">
-    <h1>Fake News Classifier</h1>
-    <p class="subtitle">Type a news headline or article text to classify it as REAL or FAKE.</p>
+    <div class="app">
+        <header class="app-header">
+            <h1>Fake News Detector</h1>
+            <p>Enter a news headline and article content to check if it appears real or fake.</p>
+        </header>
 
-    <label>News Title</label>
-    <input type="text" id="title" placeholder="Enter a headline..." />
+        <main class="app-main">
+            <div class="card">
+                
+                <label for="title" class="field-label">News Title <span style="color:#f87171">*</span></label>
+                <input
+                    type="text"
+                    id="title"
+                    class="text-input"
+                    placeholder="Example: Government announces new policy..."
+                    required
+                />
 
-    <label>Article Text</label>
-    <textarea id="text" placeholder="Paste article text..." required></textarea>
+                <label for="text" class="field-label">News Content <span style="color:#f87171">*</span></label>
+                <textarea
+                    id="text"
+                    class="text-area"
+                    rows="6"
+                    placeholder="Paste the body of the article here..."
+                    required
+                ></textarea>
 
-    <button id="predictBtn">Predict</button>
+                <button id="predictBtn" class="btn-primary">
+                    Predict
+                </button>
 
-    <div id="result" class="result" style="display: none;"></div>
-  </div>
+                <div id="result" class="result-box" style="display: none;">
+                    <!-- Prediction output -->
+                </div>
 
-  <script>
-    const API_URL = "http://127.0.0.1:8000/predict";
+            </div>
+        </main>
 
-    document.getElementById("predictBtn").addEventListener("click", async () => {
-      const title = document.getElementById("title").value;
-      const text = document.getElementById("text").value;
+        <footer class="app-footer">
+            <p>Powered by a fine-tuned BERT model for fake news detection.</p>
+        </footer>
+    </div>
 
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, text })
-      });
-
-      const data = await response.json();
-      const resultBox = document.getElementById("result");
-
-      resultBox.style.display = "block";
-      resultBox.innerHTML =
-        `<strong>Prediction:</strong> ${data.label}<br>
-         <strong>Confidence:</strong> ${(data.confidence * 100).toFixed(2)}%`;
-    });
-  </script>
+    <script src="script.js"></script>
 </body>
 </html>
