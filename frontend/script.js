@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
       resultBox.innerHTML = `
         <span class="result-title">${resultText}</span>
         <span class="result-detail">
-          Real: ${pctReal}% • Fake: ${pctFake}% • Confidence: ${(confidence * 100).toFixed(1)}%
+          Real: ${pctReal}% • Fake: ${pctFake}%
         </span>
       `;
     } catch (err) {
