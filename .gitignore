@@ -1,0 +1,14 @@
+# Python virtual environments
+.venv/
+backend/.venv/
+
+# Bytecode
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules (future-proof)
+node_modules/
