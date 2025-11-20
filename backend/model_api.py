@@ -13,18 +13,17 @@ from transformers import AutoTokenizer, AutoModel
 
 
 # ==============================
-# 1. Custom model definition
-#    (must match your Colab model)
+# 1. Custom BERT model (MATCHES YOUR COLAB CHECKPOINT)
 # ==============================
 class BertForFakeNews(nn.Module):
     """
     Custom BERT-based classifier.
 
-    Assumes in Colab you did something like:
-
-        self.bert = AutoModel.from_pretrained(model_name)
-        cls_repr = outputs.last_hidden_state[:, 0, :]
-        then a feed-forward head on top of CLS.
+    Head structure MUST MATCH your training checkpoint:
+        classifier.0 = Linear(hidden -> head_hidden)
+        classifier.1 = ReLU()
+        classifier.2 = Dropout()
+        classifier.3 = Linear(head_hidden -> num_labels)
     """
 
     def __init__(
@@ -36,30 +35,26 @@ class BertForFakeNews(nn.Module):
     ):
         super().__init__()
 
-        # Base BERT encoder
+        # BERT backbone
         self.bert = AutoModel.from_pretrained(model_name)
         hidden_size = self.bert.config.hidden_size
 
-        # Classification head
-        self.dropout = nn.Dropout(head_dropout)
-        self.fc1 = nn.Linear(hidden_size, head_hidden)
-        self.act = nn.ReLU()
-        self.out = nn.Linear(head_hidden, num_labels)
+        # Classification head (IMPORTANT: Indexes must match checkpoint keys)
+        self.classifier = nn.Sequential(
+            nn.Linear(hidden_size, head_hidden),   # classifier.0 (weights exist)
+            nn.ReLU(),                             # classifier.1
+            nn.Dropout(head_dropout),              # classifier.2
+            nn.Linear(head_hidden, num_labels),    # classifier.3 (weights exist)
+        )
 
     def forward(self, input_ids=None, attention_mask=None, **kwargs):
         outputs = self.bert(
             input_ids=input_ids,
             attention_mask=attention_mask,
-            **kwargs,
+            **kwargs
         )
-        # CLS token representation: [batch, hidden]
-        cls_repr = outputs.last_hidden_state[:, 0, :]
-
-        x = self.dropout(cls_repr)
-        x = self.fc1(x)
-        x = self.act(x)
-        x = self.dropout(x)
-        logits = self.out(x)  # [batch, num_labels]
+        cls_repr = outputs.last_hidden_state[:, 0, :]  # CLS token
+        logits = self.classifier(cls_repr)
         return logits
 
 
@@ -67,7 +62,7 @@ class BertForFakeNews(nn.Module):
 # 2. Paths & device
 # ==============================
 BASE_DIR = os.path.dirname(__file__)
-MODEL_DIR = os.path.join(BASE_DIR, "fake_news_model")  # folder with model.pt + tokenizer files
+MODEL_DIR = os.path.join(BASE_DIR, "fake_news_model")
 CKPT_PATH = os.path.join(MODEL_DIR, "model.pt")
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -86,8 +81,6 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
 print(f"Loading checkpoint from {CKPT_PATH} on {DEVICE}...")
 ckpt = torch.load(CKPT_PATH, map_location=DEVICE)
 
-# Keys saved from Colab:
-#   "state_dict", "model_name", "num_labels", "head_hidden", "head_dropout"
 model_name = ckpt.get("model_name")
 num_labels = ckpt.get("num_labels", 2)
 head_hidden = ckpt.get("head_hidden", 256)
@@ -105,6 +98,8 @@ model = BertForFakeNews(
     head_hidden=head_hidden,
     head_dropout=head_dropout,
 )
+
+# Load STATE DICT (should now match perfectly)
 model.load_state_dict(ckpt["state_dict"])
 model.to(DEVICE)
 model.eval()
@@ -119,7 +114,7 @@ app = FastAPI(title="Fake News Classifier API (Custom BERT)")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # restrict to your frontend domain later if you want
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -155,19 +150,6 @@ def clean_text(s: str) -> str:
 # 8. Inference helper
 # ==============================
 def predict_fake_news(text: str):
-    """
-    Runs the custom BERT model on a single text string.
-
-    Assumes label ids:
-        0 = REAL
-        1 = FAKE
-
-    Returns:
-        label: "REAL" or "FAKE"
-        prob_real: float in [0,1]
-        prob_fake: float in [0,1]
-        confidence: max(prob_real, prob_fake)
-    """
     cleaned = clean_text(text)
 
     enc = tokenizer(
@@ -181,17 +163,15 @@ def predict_fake_news(text: str):
     enc = {k: v.to(DEVICE) for k, v in enc.items()}
 
     with torch.no_grad():
-        logits = model(**enc)  # [1, num_labels]
+        logits = model(**enc)
 
-    probs = F.softmax(logits, dim=-1).cpu().numpy()[0]  # [num_labels]
+    probs = F.softmax(logits, dim=-1).cpu().numpy()[0]
 
-    # We assume: index 0 = REAL, index 1 = FAKE
     prob_real = float(probs[0])
     prob_fake = float(probs[1])
 
     pred_idx = int(np.argmax(probs))
     label = "REAL" if pred_idx == 0 else "FAKE"
-
     confidence = max(prob_real, prob_fake)
 
     return label, prob_real, prob_fake, confidence
@@ -217,40 +197,29 @@ def health():
 
 @app.post("/predict")
 def predict(data: InputData):
-    """
-    Main prediction endpoint.
-
-    Returns both raw probabilities and a clean string like:
-        "82% REAL" or "70% FAKE"
-    """
     merged = f"{data.title or ''} {data.text or ''}".strip()
     if not merged:
         return {"ok": False, "error": "Please provide a title or text."}
 
     label, prob_real, prob_fake, confidence = predict_fake_news(merged)
 
-    # Convert to integer percentages
     pct_real = round(prob_real * 100)
     pct_fake = round(prob_fake * 100)
 
-    # Human-readable result string
-    if label == "REAL":
-        result_text = f"{pct_real}% REAL"
-    else:
-        result_text = f"{pct_fake}% FAKE"
+    result_text = f"{pct_real}% REAL" if label == "REAL" else f"{pct_fake}% FAKE"
 
     return {
         "ok": True,
-        "label": label,                         # "REAL" or "FAKE"
+        "label": label,
         "label_id": 0 if label == "REAL" else 1,
-        "confidence": float(confidence),        # max(prob_real, prob_fake)
-        "score_real": float(prob_real),         # raw prob
-        "score_fake": float(prob_fake),         # raw prob
-        "percentage_real": pct_real,            # 0–100
-        "percentage_fake": pct_fake,            # 0–100
-        "result_text": result_text,             # "82% REAL" / "70% FAKE"
+        "confidence": float(confidence),
+        "score_real": float(prob_real),
+        "score_fake": float(prob_fake),
+        "percentage_real": pct_real,
+        "percentage_fake": pct_fake,
+        "result_text": result_text,
     }
 
-# Local test:
-#   cd backend
+
+# Run via:
 #   uvicorn model_api:app --reload --port 8000
