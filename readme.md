@@ -106,18 +106,12 @@ These findings highlight the effectiveness of transformer-based NLP models for m
 
 ---
 
-## 📝 License
-
-This project is licensed under the MIT License.
-
----
-
 ## 📄 References
 
 - Devlin et al., “BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding”
 - Hugging Face Transformers Documentation
 - Scikit-learn Documentation
 
-## 🙏 **Acknowledgements** (Optional but encouraged)
+## 🙏 **Acknowledgements** 
 
 Thank you Jenna Hunte, Saggar Thaker, Accenture, and Break Through Tech
