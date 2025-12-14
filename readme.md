@@ -6,11 +6,12 @@
 
 | Name | GitHub Handle | Contribution |
 |------|---------------|--------------|
-| Riddhima        | @github_handle | Data exploration, exploratory data analysis, dataset understanding |
-| Joey            | @github_handle | Data preprocessing, text cleaning, feature preparation |
-| Claire          | @github_handle | Model selection, training, hyperparameter tuning |
-| Tanzeela        | @github_handle | Model evaluation, performance analysis, interpretation |
-| Ayaan and Ishan | @github_handle | Project coordination, documentation, final presentation, application developement |
+| Riddhima        | @ridxm         | Data exploration, exploratory data analysis, dataset understanding |
+| Joey            | @celestialdust | Data preprocessing, text cleaning, feature preparation |
+| Claire          | @2023lic14     | Model selection, training, hyperparameter tuning |
+| Tanzeela        | @tanzeelavirk  | Model evaluation, performance analysis, interpretation |
+| Ayaan and Ishan | @ayanalam12    | Project coordination, documentation, final presentation, application developement |
+| Ishan           | @ishanislam12  | Exploratory data analysis, final presentation, application developement |
 
 ---
 
