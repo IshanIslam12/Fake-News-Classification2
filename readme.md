@@ -27,11 +27,34 @@
 ## 👩🏽‍💻 Setup and Installation
 
 ### Clone the repository
-```bash
+Open Terminal
+
 git clone https://github.com/your-username/fake-news-classification.git
 cd fake-news-classification
 
+
 ---
+
+
+## Create and activate a Virtual Enviornment
+Open Terminal
+
+python -m venv .venv
+
+Windows
+.venv\Scripts\activate
+
+Mac/Linux
+source .venv/bin/activate
+
+--- 
+
+## Install Dependencies
+Open Terminal
+pip install -r requirements.txt
+
+
+
 
 ## 🏗️ Project Overview
 
