@@ -10,7 +10,7 @@
 | Joey            | @celestialdust | Data preprocessing, text cleaning, feature preparation |
 | Claire          | @2023lic14     | Model selection, training, hyperparameter tuning |
 | Tanzeela        | @tanzeelavirk  | Model evaluation, performance analysis, interpretation |
-| Ayaan           | @aynalam12     | Project coordination, documentation, final presentation, application development |
+| Ayaan           | @aynalam12     | Project coordination, Exploratory Data Analysis, Model selection |
 | Ishan           | @ishanislam12  | Exploratory data analysis, final presentation, application development |
 | Liri            | @lirid0ron     | Project coordination, final presentation, model selection, training |
 
