@@ -12,6 +12,7 @@
 | Tanzeela        | @tanzeelavirk  | Model evaluation, performance analysis, interpretation |
 | Ayaan and Ishan | @ayanalam12    | Project coordination, documentation, final presentation, application developement |
 | Ishan           | @ishanislam12  | Exploratory data analysis, final presentation, application developement |
+| Liri            | @lirid0ron     | Project coordination, final presentation, model selction, training |
 
 ---
 
